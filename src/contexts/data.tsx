@@ -62,7 +62,7 @@ export const DataProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const subgraph = request.subgraph(SUBGRAPHS[network])!;
       const { incentives } = await subgraph(
         `query {
-          incentives(orderBy: endTime, orderDirection: desc) {
+          incentives(where:{rewardToken:"0x476fa44e9074a751c59bca745981f51ef8ee0206"},orderBy: endTime, orderDirection: desc) {
             id
             rewardToken
             pool
@@ -160,12 +160,23 @@ export const DataProvider: FC<{ children: ReactNode }> = ({ children }) => {
         owner,
         index
       );
-      const { liquidity } = await nftManagerPositionsContract.positions(
+      const { liquidity,token0,token1 } = await nftManagerPositionsContract.positions(
         tokenId
       );
       if (liquidity.isZero()) return null;
+      console.log("token1111:");
+
+      if ((token0.toString() !== "0x476Fa44e9074a751c59bCa745981F51EF8eE0206") &&
+         (token1 !== "0x476Fa44e9074a751c59bCa745981F51EF8eE0206"))
+      {
+            return null;
+      }
+    //  console.log("token0:",token0,"token1:",token1);
       const position = await stakingRewardsContract.deposits(tokenId);
-      if (owner !== address && position.owner !== address) return null;
+      if (owner !== address && position.owner !== address) {
+      //  console.log("owner:",owner,"position.owner",position.owner,"address",address);
+        return null;
+      }
       let staked = false;
       let reward = toBigNumber(0);
       try {
@@ -176,6 +187,7 @@ export const DataProvider: FC<{ children: ReactNode }> = ({ children }) => {
         reward = toBigNumber(rewardNumber.toString());
         staked = true;
       } catch {}
+
       return {
         tokenId: Number(tokenId.toString()),
         owner,
